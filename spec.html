@@ -487,7 +487,20 @@ ref to key in msg?
 #### subject
 
 ## Validation
-    
+
+Could go in slots, like
+
+<pre class="example" title="Schema for TempScan data (as psdad.js code)">
+shc.add(TempReading, 'The temperature at station [station] was [temp, type number, min -274, max 300]C at time [timestamp].')
+</pre>
+
+It depends how much value there is in interchange and standardization.  Is that better than?
+
+<pre class="example" title="Schema for TempScan data (as psdad.js code)">
+TempReading.def = 'The temperature at station [station] was [temp]C at time [timestamp].')
+TempReading.validate.temp = (x) => x > -274 && x < 300
+shc.add(TempReading)
+</pre>
 
 ## Implementation Status
 
