@@ -228,16 +228,7 @@ excellent dogfood.
 
 We use the term "data parsing" to refer to the process of converting
 an input string of characters (a PSDAD document) into a sequence of
-data records.  In our model, a data record is a set of property-value
-bindings, similar to a JSON object or a CSV row (if you consider CSV
-headings to be property names), where the values are strings.
-
-The inverse operation to parsing, "coding" (also called serializing,
-marshalling, or stringifying), is implicitly defined by how we define
-parsing.  A conformant PSDAD coder, encoding a sequence of data
-records R, MUST produce produce a string which would be parsed by any
-conformant PSDAD parser to produce an identical copy of R (if using
-the same schema).
+data records.  
 
 PSDAD parsing is dependent on a schema. Unlike with JSON and XML,
 parsing without a schema is not possible. The schema used in parsing a
@@ -245,59 +236,19 @@ string does not, however, need to exactly the match the schema used to
 produce the string. Instead, data should be coded and parsed using
 whatever schema is appropriate for the application at the time.
 
-A PSDAD schema consists of a sequence of templates, where each
-template is a sequence elements which are each either a literal string
-or a slot. For the purposes parsing, the slots have no properties and
-can simply be identifed by an index, like "slot 0" for the first slot.
-The later section [Data Binding](#Data_Binding) covers slot
-properties.
-
-As an example, consider a fictional producer of weather data,
-TempScan.  TempScan has a set of weather stations and publishes a feed
-of the data they collect.  They might use a schema like this:
-
-<pre class="example" title="Schema for TempScan data">
-[1] The temperature at station [] was []C at time [].
-[2] At station [] the windspeed was []k/h at time [].
-</pre>
-
-In this example, slots have been shown as empty bracket expressions
-(like "[]"). In practice, information about the slot will usually
-appear inside the brackets.
-
-The first template in this example schema consists of the following
-elements, in order:
-
-1. The literal "The temperature at station "
-1. A slot (slot 0)
-1. The literal " was "
-1. A slot (slot 1)
-1. The literal " C at time "
-1. A slot (slot 2)
-1. The literal "."
-
-This might be used to parse some data:
-
-<pre class="example" title="Some TempScan data">
-This is TempScan dataset 3321.
-
-The temperature at station 7 was 21.2C at time 2019-01-01T11:11:38-05:00.
-At station 7 the windspeed was 0.4k/h at time 2019-01-01T11:11:38-05:00.
-The temperature at station 9 was 21.2C at time 2019-01-01T11:11:38-05:00.
-</pre>
-
-Templates must not contain adjacent slots and must not end with a slot.  Parsers MUST reject any schema violating this condition.
-
 The parsing rules are:
+
+1. Templates must not contain adjacent slots and must not end with a slot.  Parsers MUST reject any schema violating this condition.
 
 1. The quote character (") U+0022 marks the beginning of a "quoted string", which continues until the matching end-quote. Any characters may occur in between, with backslash (\) U+005C being used to escape any quote characters inside the string, and itself, as in JSON.  In the current version, no other escape sequences are allowed and parsers MUST reject strings which use them.
 
 1. All whitespace in the input outside of quoted strings is converted into a single space character ( ) U+0020 before matching.  Whitespace inside quoted strings remains unchanged.
 
-1. Template matching is attempted at each character position in the input.
+1. Template matching is attempted at successive character positions in
+the input.
 
 1. If multiple templates match at that position, the one which
-matching the most characters is used.
+matches the longest string is used.
 
 1. If multiple templates match at a position, and they match the same
 number of characters of the input string, then the matching template
@@ -307,8 +258,7 @@ is the one which occurs earliest in the schema.
 literals and slots matches consecutive substrings of S, and either the
 input ends or the next character is a space.
 
-1. A literal L matches a substring S of the input if L and S consist
-of exactly the string.
+1. Literals match substrings if they are identical strings.
 
 1. A slot matches either a quoted string or the shortest possible
 substring of the input which enables the literal which follows the
@@ -320,18 +270,39 @@ matching proceeds onward.  Matches do not overlap.
 1. Input text which does not match by these rules is ignored.
 
 The slot matching rule is key.  It means that the literal after a slot
-acts as the delimiter of the slot. In writing PSDAD text, to enable
-correct parsing, one must use quoted string when that delimiter occurs
-in the slot's intended text,
+acts as the delimiter of the slot. In emitting PSDAD text, to enable
+correct parsing, one must emit quoted strings whenever that delimiter
+occurs in the slot text.
 
-These rules are believed to be suitable for parsing with a DFA, such
-as used by typical regular-expression engines.
-
-BUG: current manual-parse code will skip over a shorter-earlier template
+Under these rules, psdad strings can be parsed by a
+[DFA](https://en.wikipedia.org/wiki/Deterministic_finite_automaton),
+such as used by typical regular-expression engines.
 
 Parsers MAY have a "strict mode" which rejects input with non-matching
 input, rather than ignoring it, for use in contexts where decentralized
 extensibility is not appropriate.
+
+ISSUE: how to negotiate for strict mode?  eg strict envelope using U+1
+encoding.
+
+### Walkthrough
+
+Let's consider parsing some weather data using the schema shown in [Example 1](ex-1-schema-for-tempscan-data-as-psdad-js-code).
+
+<pre class="example" title="Some TempScan data">
+This is TempScan dataset 3321.
+
+The temperature at station 7 was 21.2C at time 2019-01-01T11:11:38-05:00.
+At station 7 the windspeed was 0.4k/h at time 2019-01-01T11:11:38-05:00.
+The temperature at station 9 was 21.2C at time 2019-01-01T11:11:38-05:00.
+</pre>
+
+... TDB if useful ...
+
+... maybe just show the output of --trace ...
+
+
+
 
 ### Test Suite
 
@@ -340,21 +311,51 @@ itself is serialized here using psdad.)
 
 Let s1 refer to the following schema:
 
-A PSDAD data parser using 
+A PSDAD data parser using ...
 
 ## Data Binding
 
-### General
+Issue: Does this need to be part of the psdad spec?  Could this just
+be implementation dependent?  This seems to just be psdad.js stuff.
+It would also be rather different in C++ for instance, or ML.
+
+Data binding in parsing is the process of transforming the records
+produced by the parser into native data structures suitable for
+application use. Data binding for serialization is the matching
+process of converting native data structures into records suitable for
+serialization.
+
+Data binding operates at two levels:
+
+* Datatype: serializing native data values (which might be arrays or
+  references to objects) and parsing such serializations back into
+  native data values
+
+* Object: converting between the record model and the application's
+  native Object model.
+
+Both of these are optional.  Applications which just work with strings
+have no need for using datatypes in the data binding layer, and
+applications which just work with untyped associative arrays (eg
+`Object` in JavaScript or `dict` in Python) have no need for Object
+conversion.
+
+Datatype binding is done by associating one or more native types with
+a slot, so the system can convert between what the application is
+working with and what's transmitted. 
+
 
 ISSUE: how to parse apart the type and name and other features?  Maybe it's:
 * [name]
-* [name, type name-of-type]
+* [name, type name-of-type]      *** My favorite, I think
 * [name, one of ("a", "b", "c")]
 * [type name]     [int age]
 * [name: type]    [age: int]   [age :int]
 * [type: name]    [int: age]
 
 Datatype vs class?  In any case it's NATIVE type names.
+
+ISSUE: can you write a schmema that works in multiple languages, something like:
 
 * [age, js number, c int]
 
