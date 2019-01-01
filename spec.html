@@ -228,7 +228,9 @@ excellent dogfood.
 
 We use the term "data parsing" to refer to the process of converting
 an input string of characters (a PSDAD document) into a sequence of
-data records.  
+data records, where a data record is an associate array, mapping
+slot-name to slot-text, along with a field indicating which template
+matched.
 
 PSDAD parsing is dependent on a schema. Unlike with JSON and XML,
 parsing without a schema is not possible. The schema used in parsing a
@@ -422,17 +424,45 @@ statement that future statements will be a certain way?  Ehhh.
 
 ----
 
-Move this to before data binding.
-
-* Data Parsing:   input-text + schema => parse tree, [ {tid1, s0, s1, ...}, {... } ... ]
-* Data Typing: slot-text + slot parameters => slot-value, in native representation (opt use strings)
-* Data Binding: combine those into application classes (option, use {} + [])
-
-----
-
 tagging data types, eg hex vs decimal, because which is '10'?
 
-----
+#### Strings
+
+#### Numbers
+
+#### References
+
+#### Lists
+
+### Special Slots
+
+#### id
+
+#### subject
+
+## Validation
+
+Could go in slots, like
+
+<pre class="example" title="Schema for TempScan data (as psdad.js code)">
+shc.add(TempReading, 'The temperature at station [station] was [temp, type number, min -274, max 300]C at time [timestamp].')
+</pre>
+
+It depends how much value there is in interchange and standardization.  Is that better than?
+
+<pre class="example" title="Schema for TempScan data (as psdad.js code)">
+TempReading.def = 'The temperature at station [station] was [temp]C at time [timestamp].')
+TempReading.validate.temp = (x) => x > -274 && x < 300
+shc.add(TempReading)
+</pre>
+
+## Implementation Status
+
+Editor's implementation: [psdad.js](https://github.com/sandhawke/psdad.js)
+
+
+
+## Some Issues / Ideas
 
 strict parsing, initiated by header
 
@@ -470,41 +500,4 @@ ref to key in msg?
 
 * reading is 123,456 [see notes]
 * reading is 123.456 [see note-7]
-
-
-#### Strings
-
-#### Numbers
-
-#### References
-
-#### Lists
-
-### Special Slots
-
-#### id
-
-#### subject
-
-## Validation
-
-Could go in slots, like
-
-<pre class="example" title="Schema for TempScan data (as psdad.js code)">
-shc.add(TempReading, 'The temperature at station [station] was [temp, type number, min -274, max 300]C at time [timestamp].')
-</pre>
-
-It depends how much value there is in interchange and standardization.  Is that better than?
-
-<pre class="example" title="Schema for TempScan data (as psdad.js code)">
-TempReading.def = 'The temperature at station [station] was [temp]C at time [timestamp].')
-TempReading.validate.temp = (x) => x > -274 && x < 300
-shc.add(TempReading)
-</pre>
-
-## Implementation Status
-
-Editor's implementation: [psdad.js](https://github.com/sandhawke/psdad.js)
-
-
 
