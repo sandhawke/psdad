@@ -101,38 +101,39 @@ of messages along existing social connections.
 
 ## Processing Model
 
-*PSDAD Producers* are systems which contain data in their native
-data respresentation and in order to send it to other systems, they
+PSDAD **producers** are systems which contain data in their native data
+respresentation and in order to send it to other systems, they
 serialize it using some psdad schema, producing a character string
 which represents the data. That string may be written to a file or
-transmitted, usually using utf8.
+transmitted, usually using utf8. We use the term "string" in the
+abstract sense of a sequence of characters; it can be streamed and
+does not need to fit in memory.
 
-*PSDAD Consumers* are system which read that string and convert it
-into a native data representation for use in some application.
+PSDAD **consumers** are system which read a string, using a PSDAD
+schema, and convert it into a native data representation for use in
+some application.
 
-When producers and consumers are using the same schemas and the same
+When producers and consumers are using the same schema and the same
 native data representations, the consumer should end up with a
-faithful copy of the data the producer encoded. More importantly, the
-schemas and representations can be different in useful ways and the
-transmission remains faithful under normal circumstances.
+faithful copy of the data the producer intended to transmit.
 
-In particular, a producer can encode data multiple different ways
-(typically old "compatibility" versions and new "extended" versions)
-and a consumer can ignore types of content and versions which are not
-useful for its application purposes.
+More importantly, the schemas and representations can be different in
+useful ways and the transmission remains faithful under normal
+circumstances. In particular, a producer can encode data multiple
+different ways (typically old "compatibility" versions and new
+"extended" versions) and a consumer will automatically ignore types of
+content and versions which are not useful for its application
+purposes.
 
 In some situations, it is practical for the schema to be negotiated.
 For example, during an HTTP GET of a dataset representation from a
 server process, the client might include a "Prefer" header or query
 parameter in which it provides a URL for the schema it will be using
 to read the data.  Given that, the producer can limit its output to
-the intersections of the two schemas, avoiding unnecessary data
-transfer and processing at both ends.
+the intersections of its schema and the client's, avoiding unnecessary
+data transfer and processing at both ends.
 
-BUG: current implementation should serialize with all matching
-definitions, not just the first found, unless...
-
-The documents specifies how conformant PSDAD Consumers turn strings
+This document specifies how conformant PSDAD Consumers turn strings
 into an internal data representation for use by applications. It also
 defines how conformant PSDAD Producers behave, generally by
 implication as whatever is necessary for the consumer to reproduce the
@@ -141,20 +142,87 @@ data the consumer was intending to transmit.
 Processing is defined in three independent stages. Simple applications
 can we written using only the first stage.
 
-1. data *parsing*: using template declarations in the application data
+1. data **parsing**: using template declarations in the application data
    schema, convert the overall psdoc string into a set of records,
    where each record is a mapping from slot-name to slot-string.
 
-2. data *binding*: using slot declarations in the schema, convert each
+2. data **binding**: using slot declarations in the schema, convert each
    slot-string into a native data value. This conversion includes
    handling conventional datatypes like numbers and dates, as well more
    complicated handling of structured values and references (links)
    between them.
 
-3 data *validation*: this optional stage uses additional slot
-   declaractions to perform various checks on data, so that
-   application code can safely make assumptions about the data values
-   it will encounter.
+3. data **validation**: this optional stage uses additional slot
+   declaractions to perform various checks, so that application code
+   can safely assume data values it encounters will be as expected.
+
+### Schemas
+
+A PSDAD schema consists of a sequence of templates.  Each template
+consists of a sequence of parts, where each part is either a "literal"
+or a "slot". Literals are just strings. Slots are entities with
+various properties, such as a name and type, depending on context.
+
+Schemas, templates, and slots may have platform-dependent data
+attached, such as bindings to relevant application-defined classes, or
+transformation functions to execute when reading or writing data.
+
+As an example, consider a fictional producer of weather data,
+TempScan.  TempScan has a set of weather stations and publishes a feed
+of automated observations. In our example, they are using the psdad.js
+library, so they define their schema using calls to its API like this:
+
+<pre class="example" title="Schema for TempScan data (as psdad.js code)">
+const sch = new psdad.Schema()
+shc.add(TempReading, 'The temperature at station [station] was [temp]C at time [timestamp].')
+sch.add(WindReading, 'At station [station] the windspeed was [speed]k/h at time [timestamp].')
+</pre>
+
+In this example, TempReading and WindReading are application
+classes. The library uses a notation where each template appears as
+a concatenation of its literals and slots, where the slot name appears
+in square brackets.
+
+In JSON, one might represent that same schema, without the class
+names, like this:
+
+<pre class="example" title="Schema for TempScan data (in JSON)">
+[
+  [
+    "The temperature at station ",
+    { "name": "station" },
+    " was ",
+    { "name": "temp" },
+    "C at time ",
+    { "name": "timestamp" },
+    "."
+  ],
+  [
+    "At station ",
+    { "name": "station" },
+    " the windspeed was ",
+    { "name": "speed" },
+    "k/h at time ",
+    { "name": "timestamp" },
+    "."
+  ]
+]
+</pre>
+
+The first template in this example schema consists of the following
+elements, in order:
+
+1. The literal `"The temperature at station "` (note the space at the end of the string)
+1. A slot (slot 0, named "station")
+1. The literal `" was "` (note the spaces at the beginning and end of the string)
+1. A slot (slot 1, named "temp")
+1. The literal `" C at time "`
+1. A slot (slot 2, named "timestamp")
+1. The literal `"."`
+
+ISSUE: Define a serialization syntax for schemas, for that above use
+case where the client tells the server its schema. This would be
+excellent dogfood.
 
 ## Data Parsing
 
@@ -276,6 +344,8 @@ A PSDAD data parser using
 
 ## Data Binding
 
+### General
+
 ISSUE: how to parse apart the type and name and other features?  Maybe it's:
 * [name]
 * [name, type name-of-type]
@@ -302,7 +372,7 @@ But do we also need XSD datatype information?  What if there are two
 different types with the same serialization?  Doesn't happen much.
 Timestamps without timezeon meaning Z vs local?
 
-## Datatypes
+### Datatypes
 
 Slots contain lexical representations of data values.  The mapping
 from a set of strings to the values represented by each string is
@@ -401,18 +471,19 @@ ref to key in msg?
 * reading is 123.456 [see note-7]
 
 
+#### Strings
 
+#### Numbers
 
+#### References
 
-### Strings
+#### Lists
 
-### Numbers
+### Special Slots
 
-### Refs
+#### id
 
-### Lists
-
-
+#### subject
 
 ## Validation
     
