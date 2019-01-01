@@ -35,7 +35,7 @@
       </p>
     </section>
     <section id='sotd'>
-     
+     <b>This is a sketchy rough draft, trying to flesh out an idea.</b>
     </section>
 
 ## Introduction
@@ -55,6 +55,12 @@ processing](https://en.wikipedia.org/wiki/Natural_language_processing)
 
 The design goals, in order of decreasing importance:
 
+1. The design needs to allow evolution-in-place. The initial release
+will be necessarily have many shortcomings, for instance in
+internationalization. As such, it must be clear how compatible future
+releases, possibly with syntactic extensions, can be deployed in
+practice.
+
 1. Decentralized Extensibility. In a shared medium, like the open web,
 it should be easy to extend the domain of information being
 communicated, adding new features, without negatively impacting any
@@ -64,7 +70,7 @@ a few formats by using UUIDs or URIs, as in XML with namespaces, or
 the RDF serializations, like JSON-LD. In psdad, this feature is
 provided by just using the schema definition text itself.
 
-2. When using a well-design schema, the meaning of serialized data
+1. When using a well-design schema, the meaning of serialized data
 should be unambiguous, upon careful inspection, to people without
 technical training, such as members of a jury. This meaning should not
 depend upon external documents which could be altered to change the
@@ -73,7 +79,7 @@ independent of the context in which the serialization was produced,
 transmitted, or received, so that it does not change meaning if the
 context is lost or misunderstood.
 
-3. Using this serialization should make life easier for software
+1. Using this serialization should make life easier for software
 developers, not harder. Of course, not all developers will find the
 same things easier, but it's clear that JSON has significant
 advantages on this front over most other serializations. It would be
@@ -81,23 +87,335 @@ very hard to compete with JSON on the quick-and-dirty front, but
 perhaps the addition of other features, like documentation and
 versioning, can provide a system with clear long-term benefit.
 
-4. The average case performance penalty should be linear, without a
+1. The average case performance penalty should be linear, without a
 decrease in serialization or deserialization speed when handling large
 datasets or large schemas.  Hopefully, the worst-case performance
 should be no worse than 10x JSON.
 
-5. Serializations should be transmissible with additional encoding
+1. Serializations should be transmissible with additional encoding
 over available human text channels, like email, blog posts, microblogs
 (eg twitter, mastodon), and text messaging, so that machine-readable
 messages (that is, serializations of data) can use the existing
 mechanisms for authenticating people and for authorizing distribution
 of messages along existing social connections.
 
-## Example
-    
-<pre class="example" title="">
-This is an example
+## Processing Model
+
+*PSDAD Producers* are systems which contain data in their native
+data respresentation and in order to send it to other systems, they
+serialize it using some psdad schema, producing a character string
+which represents the data. That string may be written to a file or
+transmitted, usually using utf8.
+
+*PSDAD Consumers* are system which read that string and convert it
+into a native data representation for use in some application.
+
+When producers and consumers are using the same schemas and the same
+native data representations, the consumer should end up with a
+faithful copy of the data the producer encoded. More importantly, the
+schemas and representations can be different in useful ways and the
+transmission remains faithful under normal circumstances.
+
+In particular, a producer can encode data multiple different ways
+(typically old "compatibility" versions and new "extended" versions)
+and a consumer can ignore types of content and versions which are not
+useful for its application purposes.
+
+In some situations, it is practical for the schema to be negotiated.
+For example, during an HTTP GET of a dataset representation from a
+server process, the client might include a "Prefer" header or query
+parameter in which it provides a URL for the schema it will be using
+to read the data.  Given that, the producer can limit its output to
+the intersections of the two schemas, avoiding unnecessary data
+transfer and processing at both ends.
+
+BUG: current implementation should serialize with all matching
+definitions, not just the first found, unless...
+
+The documents specifies how conformant PSDAD Consumers turn strings
+into an internal data representation for use by applications. It also
+defines how conformant PSDAD Producers behave, generally by
+implication as whatever is necessary for the consumer to reproduce the
+data the consumer was intending to transmit.
+
+Processing is defined in three independent stages. Simple applications
+can we written using only the first stage.
+
+1. data *parsing*: using template declarations in the application data
+   schema, convert the overall psdoc string into a set of records,
+   where each record is a mapping from slot-name to slot-string.
+
+2. data *binding*: using slot declarations in the schema, convert each
+   slot-string into a native data value. This conversion includes
+   handling conventional datatypes like numbers and dates, as well more
+   complicated handling of structured values and references (links)
+   between them.
+
+3 data *validation*: this optional stage uses additional slot
+   declaractions to perform various checks on data, so that
+   application code can safely make assumptions about the data values
+   it will encounter.
+
+## Data Parsing
+
+We use the term "data parsing" to refer to the process of converting
+an input string of characters (a PSDAD document) into a sequence of
+data records.  In our model, a data record is a set of property-value
+bindings, similar to a JSON object or a CSV row (if you consider CSV
+headings to be property names), where the values are strings.
+
+The inverse operation to parsing, "coding" (also called serializing,
+marshalling, or stringifying), is implicitly defined by how we define
+parsing.  A conformant PSDAD coder, encoding a sequence of data
+records R, MUST produce produce a string which would be parsed by any
+conformant PSDAD parser to produce an identical copy of R (if using
+the same schema).
+
+PSDAD parsing is dependent on a schema. Unlike with JSON and XML,
+parsing without a schema is not possible. The schema used in parsing a
+string does not, however, need to exactly the match the schema used to
+produce the string. Instead, data should be coded and parsed using
+whatever schema is appropriate for the application at the time.
+
+A PSDAD schema consists of a sequence of templates, where each
+template is a sequence elements which are each either a literal string
+or a slot. For the purposes parsing, the slots have no properties and
+can simply be identifed by an index, like "slot 0" for the first slot.
+The later section [Data Binding](#Data_Binding) covers slot
+properties.
+
+As an example, consider a fictional producer of weather data,
+TempScan.  TempScan has a set of weather stations and publishes a feed
+of the data they collect.  They might use a schema like this:
+
+<pre class="example" title="Schema for TempScan data">
+[1] The temperature at station [] was []C at time [].
+[2] At station [] the windspeed was []k/h at time [].
 </pre>
+
+In this example, slots have been shown as empty bracket expressions
+(like "[]"). In practice, information about the slot will usually
+appear inside the brackets.
+
+The first template in this example schema consists of the following
+elements, in order:
+
+1. The literal "The temperature at station "
+1. A slot (slot 0)
+1. The literal " was "
+1. A slot (slot 1)
+1. The literal " C at time "
+1. A slot (slot 2)
+1. The literal "."
+
+This might be used to parse some data:
+
+<pre class="example" title="Some TempScan data">
+This is TempScan dataset 3321.
+
+The temperature at station 7 was 21.2C at time 2019-01-01T11:11:38-05:00.
+At station 7 the windspeed was 0.4k/h at time 2019-01-01T11:11:38-05:00.
+The temperature at station 9 was 21.2C at time 2019-01-01T11:11:38-05:00.
+</pre>
+
+Templates must not contain adjacent slots and must not end with a slot.  Parsers MUST reject any schema violating this condition.
+
+The parsing rules are:
+
+1. The quote character (") U+0022 marks the beginning of a "quoted string", which continues until the matching end-quote. Any characters may occur in between, with backslash (\) U+005C being used to escape any quote characters inside the string, and itself, as in JSON.  In the current version, no other escape sequences are allowed and parsers MUST reject strings which use them.
+
+1. All whitespace in the input outside of quoted strings is converted into a single space character ( ) U+0020 before matching.  Whitespace inside quoted strings remains unchanged.
+
+1. Template matching is attempted at each character position in the input.
+
+1. If multiple templates match at that position, the one which
+matching the most characters is used.
+
+1. If multiple templates match at a position, and they match the same
+number of characters of the input string, then the matching template
+is the one which occurs earliest in the schema.
+
+1. A template matches a substring S of the input text when each of its
+literals and slots matches consecutive substrings of S, and either the
+input ends or the next character is a space.
+
+1. A literal L matches a substring S of the input if L and S consist
+of exactly the string.
+
+1. A slot matches either a quoted string or the shortest possible
+substring of the input which enables the literal which follows the
+slot in its template to match.
+
+1. When a template matches a substring, that text is consumed, and
+matching proceeds onward.  Matches do not overlap.
+
+1. Input text which does not match by these rules is ignored.
+
+The slot matching rule is key.  It means that the literal after a slot
+acts as the delimiter of the slot. In writing PSDAD text, to enable
+correct parsing, one must use quoted string when that delimiter occurs
+in the slot's intended text,
+
+These rules are believed to be suitable for parsing with a DFA, such
+as used by typical regular-expression engines.
+
+BUG: current manual-parse code will skip over a shorter-earlier template
+
+Parsers MAY have a "strict mode" which rejects input with non-matching
+input, rather than ignoring it, for use in contexts where decentralized
+extensibility is not appropriate.
+
+### Test Suite
+
+A portion of the data-parsing test suite appears here.  (Maybe: The suite
+itself is serialized here using psdad.)
+
+Let s1 refer to the following schema:
+
+A PSDAD data parser using 
+
+## Data Binding
+
+ISSUE: how to parse apart the type and name and other features?  Maybe it's:
+* [name]
+* [name, type name-of-type]
+* [name, one of ("a", "b", "c")]
+* [type name]     [int age]
+* [name: type]    [age: int]   [age :int]
+* [type: name]    [int: age]
+
+Datatype vs class?  In any case it's NATIVE type names.
+
+* [age, js number, c int]
+
+That type and constraint information is used:
+
+1. in validation during serialization or parsing
+1. in input data binding to convert to suitable native types
+1. in output data binding, when native value has multiple interfaces or isn't available for inspeaction
+1. to communicate out-of-band to people using your data how you produce it, to make it easier for them to consume it
+
+Once you publish an output schema, you should only *add* to it, and
+mark things as deprecated, but never change or remove.
+
+But do we also need XSD datatype information?  What if there are two
+different types with the same serialization?  Doesn't happen much.
+Timestamps without timezeon meaning Z vs local?
+
+## Datatypes
+
+Slots contain lexical representations of data values.  The mapping
+from a set of strings to the values represented by each string is
+called a datatype.  For example, using the datatype "number" the
+string "3" maps to the number three, while using the datatype
+"string", the string "3" simply maps to itself.
+
+Datatypes are *not* used for [data parsing](#Data_Parsing). Instead,
+they are part of [data binding](#Data_Binding), allowing the
+application develop to use datatypes suitable for their environment.
+
+One implication of this is that template text must be used to encode
+any important datatype information, rather than reyling on the system
+to convey this information. This is somewhat like [duck
+typing](https://en.wikipedia.org/wiki/Duck_typing) in programming
+languages.
+
+For example:
+
+* TempScan uses integer mmhg presure measurements: "The pressure at station [] is [:int32]."
+* QuickWeather reads it with "The pressure at station [] is [:float]."
+
+That's fine.  No problem.  But if:
+
+* TempScan writes with "The pressure at station [] is [:float]."
+* QuickWeather reads it with "The pressure at station [] is [:int32]."
+
+then things will be fine until TempScan actually uses a non-integer
+value, in which case QuickWeather's datatype handler will have to
+either throw an error or perform a lossy conversion (perhaps by
+rounding).
+
+ISSUE:
+
+To avoid this issue, which could be much more serious, the template
+literals can encode information about datatype:
+
+* "The pressure at station [] is [:number] (64bit IEEE 754, like 2.9e+8)"
+
+This is an example of where the templates can get cumbersome, as we're
+embedding the relevant parts of the authoring schema.
+
+Actually, this is a bad idea.  Don't do it.  Because what if you want
+to change it later?  What are you really saying?  You're saying in one
+statement that future statements will be a certain way?  Ehhh.
+
+----
+
+Move this to before data binding.
+
+* Data Parsing:   input-text + schema => parse tree, [ {tid1, s0, s1, ...}, {... } ... ]
+* Data Typing: slot-text + slot parameters => slot-value, in native representation (opt use strings)
+* Data Binding: combine those into application classes (option, use {} + [])
+
+----
+
+tagging data types, eg hex vs decimal, because which is '10'?
+
+----
+
+strict parsing, initiated by header
+
+This text contains a section which is likely to be misunderstood if
+not read and understood in sequential order. If any part of it is read
+without understanding all previous parts, the entire section may be
+significantly misunderstood.  If you understand this, you may read the
+text which follows, between the start and end markers. It has been
+modified so that it is less likely to be accidentally read out of
+order; the modification is that the unicode code points of each
+character has been incremented; to read it, you must decrement the code
+points. <text begins here>[text]<text ends here>.
+
+----
+
+Not sure about the whitespace rules.  Does it apply inside slot-text?
+
+If whitespace inside slot text is transformed, then we'll need to
+quote any text that happens to include a newline.  What if it's two
+paragraphs?  How would that be transmitted??
+
+---
+
+Lists are a datatype.  Might be serialized several ways.  We have a
+list.  For input and output, each of which gets tried.
+
+eg JSON, markdown, and my [1] thing, which works better if we've lost
+newlines.
+
+123,456  inus vs eu
+
+headers?  key-to-understanding-0this-document?
+
+ref to key in msg?
+
+* reading is 123,456 [see notes]
+* reading is 123.456 [see note-7]
+
+
+
+
+
+### Strings
+
+### Numbers
+
+### Refs
+
+### Lists
+
+
+
+## Validation
+    
 
 ## Implementation Status
 
