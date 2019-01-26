@@ -81,8 +81,7 @@ could make it significantly harder to build secure data communication
 channels, and it increases the cost and liability for running a
 namespace host.
 
-3. Developing 
-
+3. (I dont remember now, tbd.)
 
 
 
