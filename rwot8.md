@@ -6,13 +6,13 @@
 Existing data serialization formats like JSON, JSON-LD, XML, and even
 ASN.1 (with its various encoding rules) work well enough for
 conventional computing environments, but they fall short when high
-levels of both trust and decentralization are required. This proposed
-new approach uses natural language strings simultaneously as
+levels of both trust and decentralization are required. PSDAD
+(plaintext self-describing assertional data) is a proposed new
+approach which uses natural language strings simultaneously as
 identifiers, delimiters, and documentation, resulting in a
 surprisingly simple and robust system with distinct advantages over
-all known current approaches.  Currently called PSDAD (plaintext
-self-describing assertional data), it has a partial spec and partial
-implementation available.
+all known current approaches in certain environments.  PSDAD has has a
+partial spec and partial implementation available.
 
 ## Motivation
 
