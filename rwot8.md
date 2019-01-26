@@ -40,8 +40,8 @@ With **JSON-LD**, Alice might encode her message like this:
 ```json
 {
   "@context": {
-    "probe": "https://alice.example/schema#probe",
-    "temp": "https://alice.example/schema#temp"
+    "probe": "https://thermals.example/schema#probe",
+    "temp": "https://thermals.example/schema#temp"
   },
   "probe": 6, 
   "temp": 34 
@@ -58,7 +58,30 @@ innocent mistake (such as poor communication during a schema migration), or it
 might come from a disinformation attack, with someone deliberately
 spreading misleading information about the semantics of Alice's data.
 
+As long as Alice and Bob know each other, or are using the same
+software, or are using data formats defined by large standards
+organizations, the risk is probably small.  The risk becomes
+significant, however, in a dynamic market around an open data bus,
+with many different components and systems passing data around, with
+increasingly complexity, and new formats appearing all the time.
 
+Some people suggest the RDF (and XML) namespace architectures, as
+shown above in JSON-LD, solve this problem because one can use the
+namespace URL content as the master definition source. In theory this
+could work, but in practice it has three problems:
+
+1. The RDF specifications and current practice do not actually give
+the namespace content any special privileged status. It is unclear
+whether there is any way to add such special status after deployment.
+
+2. This makes the namespace host a critical part of the
+infrastructure. Now, when Alice and Bob communicate, they must also
+trust the namespace host (thermal.example, in the above example). It
+could make it significantly harder to build secure data communication
+channels, and it increases the cost and liability for running a
+namespace host.
+
+3. Developing 
 
 
 
