@@ -41,18 +41,19 @@
 
 ## Introduction
 
-    PSDAD (plaintext self-describing assertional data) is a new [data
+PSDAD (plaintext self-describing assertional data) is a new [data
 serialization format](https://en.wikipedia.org/wiki/Serialization).
 It is significantly different from [existing
 formats](https://en.wikipedia.org/wiki/Comparison_of_data_serialization_formats),
 including XML and JSON, in its use of free-form natural language text
-as field and record-type identifiers and simultaneously for schema
-definition. PSDAD documents with an appropriate schema can be
-understood as natural language text by human readers, while also being
-easy for machines to serialize and deserialize. Despite appearances,
-there is no [natural language
+to delimit fields, identify types, and define semantics. PSDAD
+documents with an appropriate schema can be understood as natural
+language text by human readers, while also being easy for machines to
+serialize and deserialize. Despite appearances, there is no [natural
+language
 processing](https://en.wikipedia.org/wiki/Natural_language_processing)
-(or other "AI") involved, just [regular expression](https://en.wikipedia.org/wiki/Regular_expression)s.
+(or other "AI") involved, just [regular
+expressions](https://en.wikipedia.org/wiki/Regular_expression).
 
 The design goals, in order of decreasing importance:
 
@@ -67,9 +68,8 @@ it should be easy to extend the domain of information being
 communicated, adding new features, without negatively impacting any
 currently deployed systems and without needing anyone's
 permission. Decentralized extensibility has thus far been provided in
-a few formats by using UUIDs or URIs, as in XML with namespaces, or
-the RDF serializations, like JSON-LD. In psdad, this feature is
-provided by just using the schema definition text itself.
+a few formats by using UUIDs or URIs, as in XML with namespaces or
+JSON-LD. 
 
 1. When using a well-design schema, the meaning of serialized data
 should be unambiguous, upon careful inspection, to people without
@@ -77,23 +77,23 @@ technical training, such as members of a jury. This meaning should not
 depend upon external documents which could be altered to change the
 meaning of the serialization. This meanings should also be reasonably
 independent of the context in which the serialization was produced,
-transmitted, or received, so that it does not change meaning if the
-context is lost or misunderstood.
+transmitted, or received, so that it does not dangerously change
+meaning if the context is lost or misunderstood.
 
 1. Using this serialization should make life easier for software
 developers, not harder. Of course, not all developers will find the
 same things easier, but it's clear that JSON has significant
 advantages on this front over most other serializations. It would be
-very hard to compete with JSON on the quick-and-dirty front, but
-perhaps the addition of other features, like documentation and
-versioning, can provide a system with clear long-term benefit.
+very hard to compete with JSON on the quick-and-dirty ease-of-use
+front, but perhaps the addition of other features, like documentation
+and versioning, can provide a system with tangible long-term benefit.
 
-1. The average case performance penalty should be linear, without a
+1. The average case performance should be linear, without a
 decrease in serialization or deserialization speed when handling large
 datasets or large schemas.  Hopefully, the worst-case performance
 should be no worse than 10x JSON.
 
-1. Serializations should be transmissible with additional encoding
+1. Serializations should be transmissible without additional encoding
 over available human text channels, like email, blog posts, microblogs
 (eg twitter, mastodon), and text messaging, so that machine-readable
 messages (that is, serializations of data) can use the existing
@@ -110,20 +110,21 @@ transmitted, usually using utf8. We use the term "string" in the
 abstract sense of a sequence of characters; it can be streamed and
 does not need to fit in memory.
 
-PSDAD **consumers** are system which read a string, using a PSDAD
-schema, and convert it into a native data representation for use in
-some application.
+PSDAD **consumers** are system which read a string using a PSDAD
+schema and provide a native data representation of the data that was
+encoded in the string for use in some application.
 
 When producers and consumers are using the same schema and the same
-native data representations, the consumer should end up with a
-faithful copy of the data the producer intended to transmit.
+native data representations, if a producer serializes some data as a
+string and a consumer then deserializes it, the consumer should end up
+with a faithful copy of the data the producer started with.
 
-More importantly, the schemas and representations can be different in
-useful ways and the transmission remains faithful under normal
-circumstances. In particular, a producer can encode data multiple
-different ways (typically old "compatibility" versions and new
-"extended" versions) and a consumer will automatically ignore types of
-content and versions which are not useful for its application
+More importantly, the schemas and native representations can be
+different in useful ways and the transmission remains faithful under
+normal circumstances. In particular, a producer can encode data
+multiple different ways (typically old "compatibility" versions and
+new "extended" versions) and a consumer will automatically ignore
+types of content and versions which are not useful for its application
 purposes.
 
 In some situations, it is practical for the schema to be negotiated.
