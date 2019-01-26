@@ -11,7 +11,7 @@ levels of both trust and decentralization are required. PSDAD
 approach which uses natural language strings simultaneously as
 identifiers, delimiters, and documentation, resulting in a
 surprisingly simple and robust system with distinct advantages over
-all known current approaches in certain environments.  PSDAD has has a
+all known current approaches in certain environments.  PSDAD has a
 partial spec and partial implementation available.
 
 ## Motivation
