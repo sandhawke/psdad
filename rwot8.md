@@ -33,7 +33,8 @@ In this case, Bob can tell what she means -- like whether the
 temperature is in Celcius or Farenheit -- by using external prior
 agreements.  Perhaps they were at a hackathon together while building
 this setup, or perhaps one or both of them is using software from a
-vendor which has an available specification for their data format.
+vendor which has an available specification for their data format, and
+somehow they have communicated they are both using that software.
 
 With **JSON-LD**, Alice might encode her message like this:
 ```json
