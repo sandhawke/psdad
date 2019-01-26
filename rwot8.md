@@ -81,10 +81,25 @@ could make it significantly harder to build secure data communication
 channels, and it increases the cost and liability for running a
 namespace host.
 
-3. (I dont remember now, tbd.)
+3. Not everybody is willing to use RDF, even in the form of JSON-LD.
 
+## Alternatives
 
+The author is not aware of anyone else having done work on this
+problem. He himself has developed some solutions, which might be
+better for folks using RDF, [movable
+schemas](https://sandhawke.github.io/mov/) and
+[version-integrity](https://github.com/sandhawke/version-integrity). PSDAD
+is the more general and ambitious option.
 
 ## Proposal
+
+PSDAD starts with the observation that the semantics of each field in
+a real data format are in practice basically defined by a short
+paragraph in some specification. Then we ask: why go to great effort
+to connect a field securely to that text in some remote document, when
+we can just put the text and the field together in the instance data?
+
+So, in practice, ...
 
 ...
