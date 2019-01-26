@@ -17,7 +17,7 @@ partial spec and partial implementation available.
 ## Motivation
 
 Consider the scenario where machine Alice wants to send machine Bob a
-machine-readible message, saying that some thermal probe (probe number
+machine-readable message, saying that some thermal probe (probe number
 6) is currently reading 34C.
 
 With **JSON**, she might encode it like this:
@@ -30,7 +30,7 @@ With **JSON**, she might encode it like this:
 ```
 
 In this case, Bob can tell what she means -- like whether the
-temperature is in Celcius or Farenheit -- by using external prior
+temperature is in Celsius or Fahrenheit -- by using external prior
 agreements.  Perhaps they were at a hackathon together while building
 this setup, or perhaps one or both of them is using software from a
 vendor which has an available specification for its data format, and
@@ -48,13 +48,13 @@ With **JSON-LD**, Alice might encode her message like this:
 }
 ```
 
-Now Bob has the additional option of vising
+Now Bob has the additional option of visiting
 https://alice.example/schema in a browser and perhaps finding some
 useful information about the semantics of the data he has received.
 
-One place these familiar techiques fall short is if there is confusion
+One place these familiar techniques fall short is if there is confusion
 about which definitions to use. That confusion might come from an
-innoscent mistake (such as poor comminication during a schema migration), or it
+innocent mistake (such as poor communication during a schema migration), or it
 might come from a disinformation attack, with someone deliberately
 spreading misleading information about the semantics of Alice's data.
 
