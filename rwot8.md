@@ -44,9 +44,9 @@ engine. Or maybe it's part of some formal standard, or this is some
 proprietary software talking to another instance of itself.
 
 In any case, for Bob to be confident he is correctly understanding
-Alice's message, there has to be some clear external signalling about
-which semantics Alice is using, about the definitions of the fields in
-her JSON file.
+Alice's message, there has to be some clear external signalling of how
+Alice intends each of the data fields in her message to be understood,
+in the context of the message.
 
 With **JSON-LD**, Alice might encode her message like this:
 ```json
