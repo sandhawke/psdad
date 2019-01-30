@@ -205,3 +205,9 @@ A few specific points:
 * The semantics of transmitted data are assertional (like RDF), so duplicate data/statements are ignored
 * Writing good template statements is hard, as is writing a good spec. If you err on the long side, it will at least serve to identify and delimit, and then you can iteratively improve the wording as issues arise.
 
+## Conclusion
+
+PSDAD is a new data serialization technique, which appears to have
+significant advantages in dynamic, decentralized, trust-sensitive
+environments.  Feedback and improvements are [welcome via
+github](https://github.com/sandhawke/psdad/issues/).
