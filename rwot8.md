@@ -44,7 +44,7 @@ engine. Or maybe it's part of some formal standard, or this is some
 proprietary software talking to another instance of itself.
 
 In any case, for Bob to be confident he is correctly understanding
-Alice's message, there has to be some clear external signalling of how
+Alice's message, there has to be some clear external signaling of how
 Alice intends each of the data fields in her message to be understood,
 in the context of the message.
 
@@ -99,7 +99,7 @@ Alice and Bob communicate, they must also trust the namespace host
 (thermal.example, in the above example). This could make it
 significantly harder to build secure data communication channels, and
 it increases the cost and liability for running a namespace
-host. Arguable, it increases centralization around major namespaces.
+host. Arguably, it increases centralization around major namespaces.
 
 3. Not everybody is willing to use RDF, even in the form of JSON-LD.
 
