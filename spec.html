@@ -142,7 +142,7 @@ implication as whatever is necessary for the consumer to reproduce the
 data the consumer was intending to transmit.
 
 Processing is defined in three independent stages. Simple applications
-can we written using only the first stage.
+can be written using only the first stage.
 
 1. data **parsing**: using template declarations in the application data
    schema, convert the overall psdoc string into a set of records,
@@ -230,7 +230,7 @@ excellent dogfood.
 
 We use the term "data parsing" to refer to the process of converting
 an input string of characters (a PSDAD document) into a sequence of
-data records, where a data record is an associate array, mapping
+data records, where a data record is an associative array, mapping
 slot-name to slot-text, along with a field indicating which template
 matched.
 
@@ -244,7 +244,7 @@ The parsing rules are:
 
 1. Templates must not contain adjacent slots and must not end with a slot.  Parsers MUST reject any schema violating this condition.
 
-1. The quote character (") U+0022 marks the beginning of a "quoted string", which continues until the matching end-quote. Any characters may occur in between, with backslash (\) U+005C being used to escape any quote characters inside the string, and itself, as in JSON.  In the current version, no other escape sequences are allowed and parsers MUST reject strings which use them.
+1. The quote character (") U+0022 marks the beginning of a "quoted string", which continues until the matching end-quote. Any characters may occur in between, with backslash (\\) U+005C being used to escape any quote characters inside the string, and itself, as in JSON.  In the current version, no other escape sequences are allowed and parsers MUST reject strings which use them.
 
 1. All whitespace in the input outside of quoted strings is converted into a single space character ( ) U+0020 before matching.  Whitespace inside quoted strings remains unchanged.
 
@@ -476,7 +476,7 @@ text which follows, between the start and end markers. It has been
 modified so that it is less likely to be accidentally read out of
 order; the modification is that the unicode code points of each
 character has been incremented; to read it, you must decrement the code
-points. <text begins here>[text]<text ends here>.
+points. &lt;text begins here>[text]&lt;text ends here>.
 
 ----
 
