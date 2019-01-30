@@ -103,19 +103,19 @@ host. Arguable, it increases centralization around major namespaces.
 
 3. Not everybody is willing to use RDF, even in the form of JSON-LD.
 
-The author observes these concerns becoming more pressing as the
-[Credible Web Community Group](https://credweb.org) moves toward
-creating a data ecosystem to help combat online misinformation. There
-may be others in the larger community with similar concerns.
+These concerns are becoming more pressing as the [Credible Web
+Community Group](https://credweb.org) moves toward creating a data
+ecosystem to help combat online misinformation. There may be others in
+the larger community with similar concerns.
 
 ## Alternatives
 
-The author is not aware of anyone else having done work on this
-problem. He himself has developed another solution which applies only
-to the RDF space, [Movable Schemas](https://sandhawke.github.io/mov/),
-possibly with
+I am not aware of anyone else having done work on this problem. I have
+developed another solution which applies only to the RDF space,
+[Movable Schemas](https://sandhawke.github.io/mov/), possibly with
 [version-integrity](https://github.com/sandhawke/version-integrity). PSDAD
-is the extension of Movable Schemas idea to the larger field beyond RDF.
+is the extension of Movable Schemas idea to the larger field beyond
+RDF.
 
 ## Proposal
 
